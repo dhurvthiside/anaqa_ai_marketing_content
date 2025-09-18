@@ -3,23 +3,61 @@ import { useState } from "react";
 
 export default function App() {
   const [fileError, setFileError] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState("");
 
-  const handleFileChange = (e) => {
+  // Handle Cloudinary file upload
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
-    if (file && file.size > 3 * 1024 * 1024) {
+    if (!file) return;
+
+    // Check file size (max 3MB)
+    if (file.size > 3 * 1024 * 1024) {
       setFileError("File size must be less than 3MB");
       e.target.value = "";
+      return;
     } else {
       setFileError("");
+    }
+
+    // Get name & email for metadata
+    const name = document.querySelector('input[name="name"]').value || "Anonymous";
+    const email = document.querySelector('input[name="email"]').value || "";
+
+    setUploading(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "Ai_marketing_content");
+    formData.append("context", `name=${name}|email=${email}`); // Add metadata
+
+    try {
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/dxa6dotza/image/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      const data = await res.json();
+      if (data.secure_url) {
+        setLogoUrl(data.secure_url);
+      } else {
+        setFileError("Upload failed, please try again.");
+      }
+    } catch (err) {
+      setFileError("Upload failed, please try again.");
+      console.error(err);
+    } finally {
+      setUploading(false);
     }
   };
 
   return (
     <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white font-sans">
+
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6">
-        
-        {/* Logo */}
         <motion.img
           src="/favicon.png"
           alt="AI Marketing Logo"
@@ -30,7 +68,6 @@ export default function App() {
           whileHover={{ scale: 1.1, rotate: 5 }}
         />
 
-        {/* Main Heading */}
         <motion.h1
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -40,7 +77,6 @@ export default function App() {
           AI <span className="font-extrabold text-white">Marketing Content</span> Creator
         </motion.h1>
 
-        {/* Subtitle */}
         <motion.p
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -51,8 +87,7 @@ export default function App() {
           <span className="text-white font-semibold">
             create stunning, consistent, and AI-powered visuals
           </span>{" "}
-          in seconds. No design team, no high costs — just smart,
-          professional marketing content tailored for your brand.
+          in seconds. No design team, no high costs — just smart, professional marketing content.
         </motion.p>
 
         <motion.p
@@ -62,16 +97,10 @@ export default function App() {
           className="mt-4 max-w-2xl text-md md:text-lg text-gray-400"
         >
           As part of our launch, we’re testing the platform and offering you
-          <span className="font-semibold text-indigo-400">
-            {" "}
-            3 free brand-specific images
-          </span>{" "}
-          delivered straight to your inbox.
+          <span className="font-semibold text-indigo-400"> 3 free brand-specific images</span> delivered straight to your inbox.
         </motion.p>
 
-        {/* Buttons */}
         <div className="mt-10 flex flex-col md:flex-row gap-4">
-          {/* Learn More Button */}
           <motion.a
             href="#about"
             whileHover={{ scale: 1.05 }}
@@ -81,7 +110,6 @@ export default function App() {
             Tell Me More
           </motion.a>
 
-          {/* Direct Free Images Button */}
           <motion.a
             href="#contact"
             whileHover={{ scale: 1.05 }}
@@ -94,10 +122,7 @@ export default function App() {
       </section>
 
       {/* About Section */}
-      <section
-        id="about"
-        className="py-20 px-6 max-w-5xl mx-auto text-center"
-      >
+      <section id="about" className="py-20 px-6 max-w-5xl mx-auto text-center">
         <motion.h2
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -112,13 +137,9 @@ export default function App() {
           <span className="font-semibold text-white">
             AI-powered marketing content creator
           </span>{" "}
-          — a tool designed to help businesses create consistent, on-brand
-          content at lightning speed. From visuals to campaign ideas, our
-          platform ensures creativity and professionalism without the hassle
-          of manual design work.
+          — a tool to help businesses create consistent, on-brand content at lightning speed.
         </p>
       </section>
-
 
       {/* Features Section */}
       <section id="features" className="py-20 px-6 max-w-6xl mx-auto">
@@ -133,23 +154,19 @@ export default function App() {
         </motion.h2>
 
         <div className="grid md:grid-cols-3 gap-10">
-          {[
-            {
-              title: "AI-Generated Visuals",
-              desc: "Create beautiful branded images tailored to your business in seconds.",
-              icon: "🎨",
-            },
-            {
-              title: "Fresh Campaign Ideas",
-              desc: "Never run out of creative concepts for ads, posts, and marketing.",
-              icon: "💡",
-            },
-            {
-              title: "Brand Consistency",
-              desc: "Keep your brand identity strong and recognizable across all content.",
-              icon: "✨",
-            },
-          ].map((feature, idx) => (
+          {[{
+            title: "AI-Generated Visuals",
+            desc: "Create beautiful branded images tailored to your business in seconds.",
+            icon: "🎨"
+          }, {
+            title: "Fresh Campaign Ideas",
+            desc: "Never run out of creative concepts for ads, posts, and marketing.",
+            icon: "💡"
+          }, {
+            title: "Brand Consistency",
+            desc: "Keep your brand identity strong and recognizable across all content.",
+            icon: "✨"
+          }].map((feature, idx) => (
             <motion.div
               key={idx}
               initial={{ opacity: 0, y: 40 }}
@@ -179,7 +196,6 @@ export default function App() {
         </motion.h2>
         <p className="max-w-2xl mx-auto text-lg text-white mb-6">
           Share your details and we’ll send you 3 free, branded images crafted by our AI.
-          Help us improve — and get stunning visuals for your brand.
         </p>
         <motion.a
           href="#contact"
@@ -204,88 +220,56 @@ export default function App() {
         </motion.h2>
         <p className="text-center text-gray-400 mb-8">
           Please share the following details so we can create and send you
-          <span className="font-semibold text-indigo-400"> 3 brand-specific images for free</span>. <br />We are testing our new product, and your inputs will help us refine it.
+          <span className="font-semibold text-indigo-400"> 3 brand-specific images for free</span>.
         </p>
+
         <form
-          action="https://formspree.io/f/xzzgjypj"
+          action="https://formspree.io/f/mgvljjkv"
           method="POST"
-          encType="multipart/form-data"
           className="space-y-6 bg-gray-800 p-10 rounded-2xl shadow-xl"
         >
+          {/* Name */}
           <div>
-            <label className="block text-left text-sm font-semibold text-gray-300 mb-2">
-              Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              required
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-indigo-400 outline-none"
-            />
+            <label className="block text-left text-sm font-semibold text-gray-300 mb-2">Name</label>
+            <input type="text" name="name" required className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-indigo-400 outline-none" />
           </div>
+
+          {/* Email */}
           <div>
-            <label className="block text-left text-sm font-semibold text-gray-300 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              required
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-indigo-400 outline-none"
-            />
+            <label className="block text-left text-sm font-semibold text-gray-300 mb-2">Email</label>
+            <input type="email" name="email" required className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-indigo-400 outline-none" />
           </div>
+
+          {/* Instagram / Website */}
           <div>
-            <label className="block text-left text-sm font-semibold text-gray-300 mb-2">
-              Instagram Page / Website Link
-            </label>
-            <input
-              type="url"
-              name="link"
-              placeholder="https://instagram.com/yourbrand"
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-indigo-400 outline-none"
-            />
+            <label className="block text-left text-sm font-semibold text-gray-300 mb-2">Instagram Page / Website Link</label>
+            <input type="url" name="link" placeholder="https://instagram.com/yourbrand" className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-indigo-400 outline-none" />
           </div>
+
+          {/* Brand Logo */}
           <div>
-            <label className="block text-left text-sm font-semibold text-gray-300 mb-2">
-              Upload Brand Logo (JPG or PNG, Max 3MB)
-            </label>
-            <input
-              type="file"
-              name="logo"
-              accept=".jpg,.jpeg,.png"
-              onChange={handleFileChange}
-              className="w-full text-gray-300"
-            />
-            {fileError && <p className="text-red-400 text-sm mt-2">{fileError}</p>}
+            <label className="block text-left text-sm font-semibold text-gray-300 mb-2">Upload Brand Logo (JPG/PNG, Max 3MB)</label>
+            <input type="file" name="logo_file" accept=".jpg,.jpeg,.png" onChange={handleFileChange} className="w-full text-gray-300" />
+            {uploading && <p className="text-indigo-400 mt-2">Uploading logo...</p>}
+            {fileError && <p className="text-red-400 mt-2">{fileError}</p>}
+            {logoUrl && <p className="text-green-400 mt-2">Logo uploaded successfully ✅</p>}
+            {logoUrl && <input type="hidden" name="logo" value={logoUrl} />}
           </div>
+
+          {/* Brand About */}
           <div>
-            <label className="block text-left text-sm font-semibold text-gray-300 mb-2">
-              What is your brand about?
-            </label>
-            <textarea
-              name="brand_about"
-              rows="3"
-              placeholder="Tell us about your brand..."
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-indigo-400 outline-none"
-            ></textarea>
+            <label className="block text-left text-sm font-semibold text-gray-300 mb-2">What is your brand about?</label>
+            <textarea name="brand_about" rows="3" placeholder="Tell us about your brand..." className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-indigo-400 outline-none"></textarea>
           </div>
+
+          {/* Image Preferences */}
           <div>
-            <label className="block text-left text-sm font-semibold text-gray-300 mb-2">
-              What kind of images do you want?
-            </label>
-            <textarea
-              name="image_preferences"
-              rows="3"
-              placeholder="E.g., social media posts, ads, banners..."
-              className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-indigo-400 outline-none"
-            ></textarea>
+            <label className="block text-left text-sm font-semibold text-gray-300 mb-2">What kind of images do you want?</label>
+            <textarea name="image_preferences" rows="3" placeholder="E.g., social media posts, ads, banners..." className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:border-indigo-400 outline-none"></textarea>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            type="submit"
-            className="w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transition"
-          >
+
+          {/* Submit */}
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="submit" className="w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg font-bold text-lg shadow-lg hover:shadow-xl transition">
             Submit & Get My Free Images
           </motion.button>
         </form>
