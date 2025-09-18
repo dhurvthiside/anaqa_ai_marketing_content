@@ -207,7 +207,7 @@ export default function App() {
           <span className="font-semibold text-indigo-400"> 3 brand-specific images for free</span>. <br />We are testing our new product, and your inputs will help us refine it.
         </p>
         <form
-          action="https://formspree.io/f/your-form-id"
+          action="https://formspree.io/f/xzzgjypj"
           method="POST"
           encType="multipart/form-data"
           className="space-y-6 bg-gray-800 p-10 rounded-2xl shadow-xl"
